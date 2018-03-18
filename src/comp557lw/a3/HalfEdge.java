@@ -1,6 +1,11 @@
 package comp557lw.a3;
 
+//Milan Singh 260654803
+
 import static org.lwjgl.opengl.GL11.*;
+
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.vecmath.Point3d;
 
@@ -13,6 +18,7 @@ public class HalfEdge {
     public HalfEdge twin;
     public HalfEdge next;
     public Vertex head;
+    public Vertex childVert;
     public HalfEdge child1;
     public HalfEdge child2;
     public HalfEdge parent;
@@ -54,6 +60,5 @@ public class HalfEdge {
         glEnd();
         glLineWidth(1);
         glEnable( GL_LIGHTING );
-    }
-    
+    }    
 }

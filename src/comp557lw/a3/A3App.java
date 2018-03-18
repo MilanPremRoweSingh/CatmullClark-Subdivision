@@ -1,11 +1,16 @@
 package comp557lw.a3;
 
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL20.GL_FRAGMENT_SHADER;
+import static org.lwjgl.opengl.GL20.GL_VERTEX_SHADER;
+import static org.lwjgl.opengl.GL20.glUseProgram;
 import static org.lwjgl.glfw.GLFW.*;
 
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.LinkedList;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -75,12 +80,14 @@ public class A3App implements SceneGraphNode, KeyCallback {
     		"   v     - toggle draw child verts\n" +
     		"";
     
+    boolean useShader = true;
+    
     /**
      * COMP557 - Assignment 3 class.
      */
     public A3App() {    
         loadSoupBuildAndSubdivide( soupFiles[0], 3 );
-        EasyViewer ev = new EasyViewer("Comp 557 Assignment 4 - YOUR NAME HERE", this, new Dimension(600, 600), new Dimension(600, 600) );
+        EasyViewer ev = new EasyViewer("Comp 557 Assignment 4 - Milan Singh 260654803", this, new Dimension(600, 600), new Dimension(600, 600) );
         ev.setKeyCallback( this );
         System.out.println( keyboardInterfaceInstructions );
     }
@@ -120,7 +127,8 @@ public class A3App implements SceneGraphNode, KeyCallback {
             glMaterialfv( GL_FRONT_AND_BACK,GL_SPECULAR, shinyColour );
             glMateriali( GL_FRONT_AND_BACK,GL_SHININESS, 50 );
             glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, 1);
-            glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );            
+            glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );      
+    		glUseProgram( 0 );       
         } else {
             // if drawing without lighting, we'll set the colour to white
             // and set polygons to render in wire frame
@@ -138,8 +146,28 @@ public class A3App implements SceneGraphNode, KeyCallback {
         if ( drawHalfEdge.getValue() && currentHE != null ) {
             currentHE.display();
         }
-        heds[drawLevel].display();
         
+        if( useShader )
+        {
+        	float[] position = { -25, -25, 10, 1 };
+        	float[] colour = { 0.8f, 0.8f, 0.8f, 1 };
+        	float[] acolour = { 0.3f, 0.3f, 0.3f, 1 };
+        	glLightfv( GL_LIGHT0, GL_SPECULAR, colour );
+			glLightfv( GL_LIGHT0, GL_DIFFUSE, colour );
+			glLightfv( GL_LIGHT0, GL_AMBIENT, acolour );
+			glLightfv( GL_LIGHT0, GL_POSITION, position );
+			glEnable( GL_LIGHT0 );
+			
+			List<ShaderInfo> shaders = new LinkedList<ShaderInfo>();
+			shaders.add( new ShaderInfo( GL_VERTEX_SHADER, "shader/mode4.vp" ) );
+			shaders.add( new ShaderInfo( GL_FRAGMENT_SHADER, "shader/mode4.fp" ) );
+			glUseProgram( LoadShader.loadShaders(shaders) );
+			// no extra ambient light 
+        }
+        
+        heds[drawLevel].display(); 
+
+		glUseProgram( 0 ); //Reset shader
         EasyViewer.beginOverlay();
         glDisable( GL_LIGHTING );
         glColor3f(1,1,1);
@@ -163,8 +191,7 @@ public class A3App implements SceneGraphNode, KeyCallback {
     private BooleanParameter drawHalfEdge = new BooleanParameter( "draw test half edge", true );
     private BooleanParameter drawChildVerts = new BooleanParameter( "draw child vertices", false );
     private BooleanParameter drawWireFrame = new BooleanParameter( "draw wire frame", false );
-    // TODO: Objective 1: on the line below, set the drawCoarse default value to false once you've correctly created your half edge data structure
-    private BooleanParameter drawSoup = new BooleanParameter( "draw coarse soup mesh", true );
+    private BooleanParameter drawSoup = new BooleanParameter( "draw coarse soup mesh", false );
     private IntParameter subdivisionLevels = new IntParameter("maximum subdivisions", 3, 3, Integer.MAX_VALUE );
     
     @Override
@@ -234,6 +261,8 @@ public class A3App implements SceneGraphNode, KeyCallback {
             drawChildVerts.setValue(!drawChildVerts.getValue());
         } else if ( key == GLFW_KEY_H ) {
             drawHalfEdge.setValue(!drawHalfEdge.getValue());
+        } else if ( key == GLFW_KEY_F ) {
+        	useShader = !useShader;
         }
     }
 

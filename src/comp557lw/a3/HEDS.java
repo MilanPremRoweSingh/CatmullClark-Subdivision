@@ -1,9 +1,15 @@
 package comp557lw.a3;
 
+//Milan Singh 260654803
+
 import static org.lwjgl.opengl.GL11.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 
 import javax.vecmath.Point3d;
 import javax.vecmath.Vector3d;
@@ -12,7 +18,7 @@ import javax.vecmath.Vector3d;
  * Half edge data structure.
  * Maintains a list of faces (i.e., one half edge of each) to allow for easy display of geometry.
  * 
- * @author TODO: YOUR NAME HERE
+ * @author Milan Singh
  */
 public class HEDS {
 
@@ -28,21 +34,103 @@ public class HEDS {
         // do nothing
     }
         
+    
+    /**
+     * Data structure for storing edges uniquely and mapping halfEdges to edges
+     * Sets twin for edges added to the same edge
+     */
+    static class EdgeToHalfEdgeMap
+    {
+    	ArrayList< Vertex[] > edges;
+    	HashMap< Vertex[], HalfEdge[] > halfEdgeMap;
+    	
+    	EdgeToHalfEdgeMap()
+    	{
+    		edges = new ArrayList<Vertex[]>();
+    		halfEdgeMap = new HashMap<Vertex[], HalfEdge[]>();
+    	}
+    	
+    	public void add( Vertex v0, Vertex v1, HalfEdge he )
+    	{
+    		Vertex u;
+    		Vertex v;
+    		//Ensure that edges are only stored once by ordering them
+    		if (v0.p.x != v1.p.x)
+    		{
+				u = ( v0.p.x < v1.p.x ) ? v0 : v1;
+				v = ( v0.p.x < v1.p.x ) ? v1 : v0;
+    		} 
+    		else if ( v0.p.y != v1.p.y )
+    		{
+				u = ( v0.p.y < v1.p.y ) ? v0 : v1;
+				v = ( v0.p.y < v1.p.y ) ? v1 : v0;
+    		}
+    		else
+    		{
+				u = ( v0.p.z < v1.p.z ) ? v0 : v1;
+				v = ( v0.p.z < v1.p.z ) ? v1 : v0;
+    		}
+			
+			for( Vertex[] edge : edges )
+			{
+				if( edge[0] == u && edge[1] == v )
+				{
+					HalfEdge[] twinPair = halfEdgeMap.get( edge );
+					twinPair[1] = he;
+					twinPair[0].twin = he;
+					he.twin = twinPair[0];
+					return;
+				}
+			}
+			Vertex[] edge = new Vertex[] { u, v };
+			edges.add( edge );
+			HalfEdge[] halfEdges = new HalfEdge[2];
+			halfEdges[0] = he;
+			halfEdgeMap.put( edge, halfEdges );
+    	}
+    }
+    
+    
     /**
      * Builds a half edge data structure from the polygon soup   
      * @param soup
      */
-    public HEDS( PolygonSoup soup ) {
+    public HEDS( PolygonSoup soup ) 
+    { 
+    	
+    	List<Vertex> verts 		= soup.vertexList;
+    	List<int[]> soupFaces 	= soup.faceList;
+
+    	EdgeToHalfEdgeMap eheMap = new EdgeToHalfEdgeMap();
+    	
+    	for( int[] face : soupFaces )
+    	{
+    		int sides = face.length;
+    		HalfEdge[] hes = new HalfEdge[ sides ];
+    		
+    		for( int i = 0; i < sides; i++ )
+    		{
+    			HalfEdge he = new HalfEdge();
+    			Vertex u = verts.get( face[i] );
+    			Vertex v = verts.get( face[(i+1)%sides] );
+    			he.head = v;
+    			eheMap.add( u, v, he);
+
+    			hes[i] = he;
+    		}
+    		
+    		for( int i = 0; i < sides; i++ )
+    		{
+    			hes[i].next = hes[(i+1)%sides];
+    			
+    			 //Enforce order to which vert is stored first so edges are stored 
+    		}
+    		faces.add( new Face( hes[0] ) );
+    	}
+    	
         
         
-        
-        
-        // TODO: Objective 1: create the half edge data structure from a polygon soup
-        
-        
-        
-        
-    } 
+    }  
     
     /**
      * Draws the half edge data structure by drawing each of its faces.

@@ -1,5 +1,9 @@
 package comp557lw.a3;
 
+//Milan Singh 260654803
+
+import java.util.Set;
+
 import javax.vecmath.Point3d;
 import javax.vecmath.Vector3d;
 
@@ -40,4 +44,5 @@ public class Face {
             loop = loop.next;
         } while ( loop != he );
     }
+    
 }

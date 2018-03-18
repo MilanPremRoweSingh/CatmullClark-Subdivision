@@ -1,5 +1,7 @@
 package comp557lw.a3;
 
+//Milan Singh 260654803
+
 import static org.lwjgl.opengl.GL11.*;
 
 import java.io.BufferedReader;
